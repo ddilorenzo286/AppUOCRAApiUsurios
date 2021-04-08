@@ -1,0 +1,7 @@
+bin
+obj
+out
+appsettings.json
+appsettings.Development.json
+credentials.json
+token.json
