@@ -14,6 +14,7 @@ namespace UsuariosApi.Models
         public DateTime? FechaCreacion { get; set; }
         public string Foto { get; set; }
         public int Documento { get; set; }
+        public string TipoDocumento { get; set; }
         public string Telefono { get; set; }
         public string Sexo { get; set; }
         public DateTime? FechaNacimiento { get; set; }

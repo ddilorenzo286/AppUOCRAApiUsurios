@@ -129,6 +129,7 @@ namespace LoginService.Controllers
             usuario.Email = comando.Email;
             usuario.Foto = comando.Foto;
             usuario.Documento = comando.Documento;
+            usuario.TipoDocumento = comando.TipoDocumento;
             usuario.Perfil = Roles.Cliente;
             usuario.Telefono = comando.Telefono;
             usuario.Activo = true;
@@ -171,6 +172,7 @@ namespace LoginService.Controllers
             user.Apellido = comando.Apellido != null ? comando.Apellido : user.Apellido;
             user.Foto = comando.Foto != null ? comando.Foto : user.Foto;
             user.Documento = comando.Documento != 0 ? comando.Documento : user.Documento;
+            user.TipoDocumento = comando.TipoDocumento != null ? comando.TipoDocumento : user.TipoDocumento;
             user.Telefono = comando.Telefono != null ? comando.Telefono : user.Telefono;
             user.FechaNacimiento = comando.FechaNacimiento != null ? comando.FechaNacimiento : user.FechaNacimiento;
             user.LugarResidencia = comando.LugarResidencia != null ? comando.LugarResidencia : user.LugarResidencia;
@@ -209,6 +211,7 @@ namespace LoginService.Controllers
         public string Nombre { get; set; }
         public string Apellido { get; set; }
         public int Documento { get; set; }
+        public string TipoDocumento { get; set; }
         public string Telefono { get; set; }
         public string Foto { get; set; }
         public string Sexo { get; set; }
@@ -223,6 +226,7 @@ namespace LoginService.Controllers
         public string Nombre { get; set; }
         public string Apellido { get; set; }
         public int Documento { get; set; }
+        public string TipoDocumento { get; set; }
         public string Telefono { get; set; }
         public string Foto { get; set; }
         public int InvitacionId { get; set; }

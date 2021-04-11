@@ -69,7 +69,7 @@ namespace mails
 
         public void logonMail(Usuario usuario)
         {
-            var link = "http://localhost:8080/?vista=claveCambio&ticket=" + usuario.Ticket;
+            var link = "https://app.uocra.org/?vista=claveCambio&ticket=" + usuario.Ticket;
 
 
             var mailMessage = new System.Net.Mail.MailMessage();
@@ -87,7 +87,7 @@ namespace mails
 
         public void passwordMail(Usuario usuario)
         {
-            var link = "http://localhost:8080/?vista=claveCambio&ticket=" + usuario.Ticket;
+            var link = "https://app.uocra.org/?vista=claveCambio&ticket=" + usuario.Ticket;
 
             var mailMessage = new System.Net.Mail.MailMessage();
 
