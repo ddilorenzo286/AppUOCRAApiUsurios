@@ -60,7 +60,7 @@ namespace LoginService
                 };
             });
 
-            services.AddScoped<IgoogleMailService, GoogleMailService>();
+            services.AddScoped<IMailService, MailService>();
             services.AddScoped<IUserService, UserService>();
 
             services.AddAutoMapper(typeof(Startup));

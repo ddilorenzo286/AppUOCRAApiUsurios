@@ -27,9 +27,9 @@ namespace LoginService.Controllers
         private readonly IUserService _userService;
         private readonly IMapper _mapper;
 
-        private readonly IgoogleMailService _mailService;
+        private readonly IMailService _mailService;
 
-        public AutorizacionController(LoginServiceContext context, IUserService userService, IMapper mapper, IgoogleMailService mailService)
+        public AutorizacionController(LoginServiceContext context, IUserService userService, IMapper mapper, IMailService mailService)
         {
             _context = context;
             _userService = userService;
@@ -66,7 +66,8 @@ namespace LoginService.Controllers
 
             _context.SaveChanges();
 
-            _mailService.passwordMail(user);
+            //_mailService.passwordMail(user);
+            await _mailService.newPasswordMail(user.Perfil, user.Ticket, user.Email, user.Apellido + ", " + user.Nombre);
 
             return Ok();
 
@@ -140,7 +141,9 @@ namespace LoginService.Controllers
 
             //await _mailService.newUserMail(usuario.Perfil, usuario.Ticket, usuario.Email, usuario.Nombre + "," + usuario.Apellido);
 
-            _mailService.logonMail(usuario);
+            await _mailService.newUserMail(usuario.Perfil, usuario.Ticket, usuario.Email, usuario.Apellido + ", " + usuario.Nombre);
+            //logonMail(usuario);
+
 
 
 
