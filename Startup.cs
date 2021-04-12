@@ -60,7 +60,8 @@ namespace LoginService
                 };
             });
 
-            services.AddScoped<IMailService, MailService>();
+            services.AddScoped<IMailService, MailService>(x => new MailService(new System.Net.Http.HttpClient(), mailToken));
+
             services.AddScoped<IUserService, UserService>();
 
             services.AddAutoMapper(typeof(Startup));
