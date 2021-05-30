@@ -43,10 +43,25 @@ namespace LoginService.Controllers
         public IActionResult login([FromBody] Credencial credencial)
 
         {
-            var user = _userService.Authenticate(credencial.email, credencial.password);
+            UsuarioDTO user = null;
 
-            if (user == null)
+            try
+            {
+                user = _userService.Authenticate(credencial.email, credencial.password);
+            }
+            catch (UsuarioNoAutenticadoException)
+            {
                 return BadRequest(new { message = "Username or password is incorrect" });
+            }
+            catch (UsuarioInactivoException)
+            {
+                return BadRequest(new { message = "Usuario Inactivo" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+
 
             return Ok(user);
         }
@@ -152,6 +167,116 @@ namespace LoginService.Controllers
             return _mapper.Map<UsuarioDTO>(usuario); ;
         }
 
+        [HttpPost("logon_complete")]
+        [AllowAnonymous]
+        public async Task<ActionResult> logon_complete([FromBody] LogonCompleteCommand comando)
+        {
+
+            if (await _context.Usuarios.AnyAsync(e => e.Email == comando.Email))
+                return BadRequest();
+            if (await _context.Usuarios.AnyAsync(e => e.Email == comando.Email + "_" + e.Sal))
+                return BadRequest();
+
+            Usuario usuario = new Usuario();
+
+            usuario.Ticket = Guid.NewGuid().ToString();
+
+            byte[] salt = new byte[128 / 8];
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(salt);
+            }
+            string sal = Convert.ToBase64String(salt);
+
+            string hashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(
+                password: comando.Password,
+                salt: Convert.FromBase64String(sal),
+                prf: KeyDerivationPrf.HMACSHA1,
+                iterationCount: 10000,
+                numBytesRequested: 256 / 8));
+
+            usuario.Email = comando.Email + "_" + sal;
+            usuario.Password = hashed;
+            usuario.Sal = sal;
+            usuario.Ticket = Guid.NewGuid().ToString().Substring(0, 6).ToUpper();
+            usuario.FechaCreacion = DateTime.UtcNow;
+            usuario.Nombre = comando.Nombre;
+            usuario.Apellido = comando.Apellido;
+            usuario.Sexo = comando.Sexo;
+            usuario.FechaNacimiento = comando.FechaNacimiento;
+            usuario.LugarResidencia = comando.LugarResidencia;
+            usuario.Foto = comando.Foto;
+            usuario.Documento = comando.Documento;
+            usuario.TipoDocumento = comando.TipoDocumento;
+            usuario.Perfil = Roles.Cliente;
+            usuario.Telefono = comando.Telefono;
+            usuario.Activo = true;
+
+            _context.Usuarios.Add(usuario);
+
+            await _context.SaveChangesAsync();
+
+            await _mailService.newUserMail(usuario.Perfil, usuario.Ticket, comando.Email, usuario.Apellido + ", " + usuario.Nombre);
+
+            return Ok();
+        }
+
+        [HttpPost("recupero_complete")]
+        [AllowAnonymous]
+        public async Task<ActionResult> recupero_complete([FromBody] LogonCompleteCommand comando)
+        {
+
+            Usuario usuario = await _context.Usuarios.FirstOrDefaultAsync<Usuario>(e => e.Email == comando.Email);
+
+            if (usuario == null)
+            {
+                usuario = await _context.Usuarios.FirstOrDefaultAsync<Usuario>(e => e.Email == comando.Email + "_" + e.Sal);
+                if (usuario == null)
+                    return BadRequest();
+            }
+
+            string hashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(
+                password: comando.Password,
+                salt: Convert.FromBase64String(usuario.Sal),
+                prf: KeyDerivationPrf.HMACSHA1,
+                iterationCount: 10000,
+                numBytesRequested: 256 / 8));
+
+            usuario.Email = comando.Email + "_" + usuario.Sal;
+            usuario.Password = hashed;
+            usuario.Ticket = Guid.NewGuid().ToString().Substring(0, 6).ToUpper();
+
+            _context.Usuarios.Update(usuario);
+
+            await _context.SaveChangesAsync();
+
+            await _mailService.newUserMail(usuario.Perfil, usuario.Ticket, comando.Email, usuario.Apellido + ", " + usuario.Nombre);
+
+            return Ok();
+        }
+
+
+        [HttpPost("activation")]
+        [AllowAnonymous]
+        public async Task<ActionResult> activation([FromBody] string ticket)
+
+        {
+
+            var user = await _context.Usuarios.FirstOrDefaultAsync(u => u.Ticket == ticket);
+
+            if (user == null)
+                return NotFound();
+
+            user.Email = user.Email.Replace("_" + user.Sal, "");
+            user.Ticket = "";
+
+            _context.SaveChanges();
+
+            return Ok();
+
+        }
+
+
         [HttpPost("updateProfile")]
         [AllowAnonymous]
         public async Task<ActionResult<UsuarioDTO>> updateProfile([FromBody] updateProfileCommand comando)
@@ -234,5 +359,21 @@ namespace LoginService.Controllers
         public string Foto { get; set; }
         public int InvitacionId { get; set; }
     }
+
+    public class LogonCompleteCommand
+    {
+        public string Email { get; set; }
+        public string Nombre { get; set; }
+        public string Apellido { get; set; }
+        public string Sexo { get; set; }
+        public DateTime? FechaNacimiento { get; set; }
+        public string LugarResidencia { get; set; }
+        public int Documento { get; set; }
+        public string TipoDocumento { get; set; }
+        public string Telefono { get; set; }
+        public string Foto { get; set; }
+        public string Password { get; set; }
+    }
+
 
 }

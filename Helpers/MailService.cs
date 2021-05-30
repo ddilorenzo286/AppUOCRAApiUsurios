@@ -64,7 +64,7 @@ namespace mails
 
             request.MailDTO = new mailDTO();
             request.MailDTO.Subject = "Activación de cuenta AppUOCRA!!";
-            request.MailDTO.Body = "Estimado/a " + nombreDestinatario + ".<br>Hemos recibido una solicitud para el alta de tu cuenta de AppUOCRA, por favor haz <a href='https://app.uocra.org/?vista=claveCambio&ticket=" + ticket + "'>click aquí</a> para validarla.";
+            request.MailDTO.Body = "Estimado/a " + nombreDestinatario + ".<br>Hemos recibido una solicitud de activación de tu cuenta de AppUOCRA.</br>Tu código de activación es " + ticket;
             request.MailDTO.Mails = new List<string>();
             request.MailDTO.Mails.Add(emailDestinatario);
 

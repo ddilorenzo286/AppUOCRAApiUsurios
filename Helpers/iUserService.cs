@@ -45,7 +45,12 @@ namespace UsuariosApi.Services
             var user = _context.Usuarios.FirstOrDefault(x => x.Email == email);
 
             if (user == null)
-                return null;
+            {
+                user = _context.Usuarios.FirstOrDefault(x => x.Email == email + "_" + x.Sal);
+                if (user != null) throw new UsuarioInactivoException();
+            }
+
+            if (user == null) throw new UsuarioNoAutenticadoException();
 
             string hashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(
                password: password,
@@ -56,7 +61,7 @@ namespace UsuariosApi.Services
 
 
             if (user.Password != hashed)
-                return null;
+                throw new UsuarioNoAutenticadoException();
 
             // authentication successful so generate jwt token
             var tokenHandler = new JwtSecurityTokenHandler();
@@ -96,4 +101,25 @@ namespace UsuariosApi.Services
 
         }
     }
+
+    public class UsuarioInactivoException : System.Exception
+    {
+        public UsuarioInactivoException() { }
+        public UsuarioInactivoException(string message) : base(message) { }
+        public UsuarioInactivoException(string message, System.Exception inner) : base(message, inner) { }
+        protected UsuarioInactivoException(
+            System.Runtime.Serialization.SerializationInfo info,
+            System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+    }
+
+    public class UsuarioNoAutenticadoException : System.Exception
+    {
+        public UsuarioNoAutenticadoException() { }
+        public UsuarioNoAutenticadoException(string message) : base(message) { }
+        public UsuarioNoAutenticadoException(string message, System.Exception inner) : base(message, inner) { }
+        protected UsuarioNoAutenticadoException(
+            System.Runtime.Serialization.SerializationInfo info,
+            System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+    }
+
 }
